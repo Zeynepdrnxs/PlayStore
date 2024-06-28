@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5220101 - Zeynep DURNA</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" type="img/png" sizes="32x32" href="./img/zeynep-durna-logo.png">
+    <style>
+
+        /* Animasyonlar */
+        @keyframes moveUpDown {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes changeColor {
+            0%, 100% {
+                color: #FF0000; /* Kırmızı */
+            }
+            25% {
+                color: #00FF00; /* Yeşil */
+            }
+            50% {
+                color: #0000FF; /* Mavi */
+            }
+            75% {
+                color: #FFFF00; /* Sarı */
+            }
+        }
+
+        /* Başlık animasyonları */
+        h1 {
+            animation: moveUpDown 2s infinite alternate, changeColor 4s infinite;
+            display: inline-block;
+        }
+
+        /* Sayfa arkaplanı */
+        body {
+            background: url('https://img1.liveinternet.ru/images/attach/c/7/124/923/124923713_0_ee290_3198fc9a_orig.gif') fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        /* Etiket düzeni */
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Input alanları */
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        /* Buton stil */
+        button {
+            margin-top: 8px;
+        }
+
+        /* Tablo stil */
+        table {
+            margin-top: 16px;
+        }
+
+        /* Uyarı mesajları alanı */
+        .alert {
+            margin-top: 16px;
+        }
+
+        /* Özel buton stil */
+        .custom-btn {
+            margin-top: -15px;
+        }
+
+        /* Container stil */
+        .container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+    </style>
+
+    <!-- JavaScript kodları -->
+    <script>
+
+
+        // Filtreleme işlemleri fonksiyonu
+        function uygulaFiltre() {
+            // localStorage'dan verileri al
+            var oyuncaklar = JSON.parse(localStorage.getItem("oyuncaklar"));
+
+            // Filtreleme alanlarından değerleri al
+            var adFiltre = document.getElementById("filtreAd").value.toLowerCase();
+            var turFiltre = document.getElementById("filtreTur").value.toLowerCase();
+
+            // Boş alan kontrolü
+            if (adFiltre === "" && turFiltre === "") {
+                alert("Lütfen en az bir filtre kriteri girin.");
+                return;
+            }
+
+            // Filtreleme işlemi
+            var filtrelenmisOyuncaklar = oyuncaklar.filter(function (oyuncak) {
+                return oyuncak.ad.toLowerCase().includes(adFiltre) && oyuncak.tur.toLowerCase().includes(turFiltre);
+            });
+
+            // Filtrelenmiş verileri tabloya ekleme
+            var tabloBaslik = "<table class='table table-bordered table-striped'>" +
+                "<thead class='thead-dark'><tr><th>ID</th><th>Alış Tarihi</th><th>Alış Fiyatı</th><th>Oyuncak</th><th>Tur</th><th>Desi</th><th>Notlar</th><th>İşlemler</th></tr></thead><tbody>";
+            var tabloVeri = "";
+            for (var i = 0; i < filtrelenmisOyuncaklar.length; i++) {
+                tabloVeri += "<tr>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].id + "</td>" +
+                    "<td>" + formatDate(filtrelenmisOyuncaklar[i].alisTarihi) + "</td>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].alisFiyati + "</td>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].ad + "</td>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].tur + "</td>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].desi + "</td>" +
+                    "<td>" + filtrelenmisOyuncaklar[i].notlar + "</td>" +
+                    "<td><button class='btn btn-danger' onclick='sil(" + filtrelenmisOyuncaklar[i].id + ")'>Sil</button></td>" +
+                    "</tr>";
+            }
+            var tabloBitis = "</tbody></table>";
+            document.getElementById("oyuncakListesi").innerHTML = tabloBaslik + tabloVeri + tabloBitis;
+        }
+
+        // Tüm oyuncakları listeleme işlemleri
+        function listele() {
+            // listele fonksiyonu
+            var request = new XMLHttpRequest();
+            request.open("GET", "http://localhost:8080/listele", true);
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+                    var oyuncaklar = JSON.parse(request.responseText);
+                    var tabloBaslik = "<table class='table table-bordered table-striped'>" +
+                         "<thead class='thead-dark'><tr><th>ID</th>" +
+                                                       "<th>Alış Tarihi</th>" +
+                                                       "<th>Alış Fiyatı</th>" +
+                                                       "<th>Oyuncak</th>" +
+                                                       "<th>Tür</th>" +
+                                                       "<th>Desi</th>" +
+                                                       "<th>Notlar</th>" +
+                                                       "<th>İşlemler</th>" +
+                                                       "</tr></thead><tbody>";
+                    var tabloVeri = "";
+                    for (var i = 0; i < oyuncaklar.length; i++) {
+                        tabloVeri += "<tr>" +
+                            "<td>" + oyuncaklar[i].id + "</td>" +
+                            "<td>" + formatDate(oyuncaklar[i].alisTarihi) + "</td>" +
+                            "<td>" + oyuncaklar[i].alisFiyati + "</td>" +
+                            "<td>" + oyuncaklar[i].ad + "</td>" +
+                            "<td>" + oyuncaklar[i].tur + "</td>" +
+                            "<td>" + oyuncaklar[i].desi + "</td>" +
+                            "<td>" + oyuncaklar[i].notlar + "</td>" +
+                            "<td><button class='btn btn-danger' onclick='sil(" + oyuncaklar[i].id + ")'>Sil</button></td>" +
+                            "</tr>";
+                    }
+                    var tabloBitis = "</tbody></table>";
+                    document.getElementById("oyuncakListesi").innerHTML = tabloBaslik + tabloVeri + tabloBitis;
+                }
+            };
+            request.send();
+        }
+
+        // Tarihi düzgün formatta gösterme fonksiyonu
+        function formatDate(dateString) {
+            var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return new Date(dateString).toLocaleDateString('tr-TR', options);
+        }
+
+        // Filtreleme alanlarını temizleme fonksiyonu
+        function temizleFiltre() {
+            document.getElementById("filtreAd").value = "";
+            document.getElementById("filtreTur").value = "";
+            listele(); // Filtreyi temizle, tüm verileri göster
+        }
+
+        // Oyuncak ekleme fonksiyonu
+        function ekle() {
+            // Ekleme işlemi için gerekli parametreler
+            const parametreler = {
+                alisTarihi: document.getElementById("alisTarihi").value,
+                alisFiyati: document.getElementById("alisFiyati").value,
+                ad: document.getElementById("ad").value,
+                tur: document.getElementById("tur").value,
+                notlar: document.getElementById("notlar").value,
+                desi: document.getElementById("desi").value
+            }
+
+            // Boş alan kontrolü
+            for (const key in parametreler) {
+                if (parametreler[key] === "") {
+                    document.getElementById("uyari").innerHTML = '<div class="alert alert-danger" role="alert">Lütfen tüm alanları doldurun.</div>';
+                    return; // İşlemi durdur
+                }
+            }
+
+            // Uyarıyı temizle
+            document.getElementById("uyari").innerHTML = '';
+
+            // Ekleme isteğini gönderme
+            var request = new XMLHttpRequest();
+            request.open("POST", "http://localhost:8080/ekle", true);
+            request.setRequestHeader("Content-type", "application/json");
+
+// Ekleme işlemi tamamlandığında
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status === 200) {
+                        alert("Ekleme başarılı! " + request.responseText);
+                        listele(); // Verileri güncelle
+                        temizle(); // Bilgi giriş alanlarını temizle
+                    } else {
+                        alert("Ekleme başarısız! Hata: " + request.responseText);
+                    }
+                }
+            };
+
+            // Ekleme isteğini gönderme
+            request.send(JSON.stringify(parametreler));
+        }
+
+        // Bilgi giriş alanlarını temizleme fonksiyonu
+        function temizle() {
+            document.getElementById("alisTarihi").value = "";
+            document.getElementById("alisFiyati").value = "";
+            document.getElementById("ad").value = "";
+            document.getElementById("tur").value = "";
+            document.getElementById("notlar").value = "";
+            document.getElementById("desi").value = "";
+        }
+
+        function kontrolVeEkle() {
+            var alisTarihi = document.getElementById("alisTarihi").value;
+            var alisFiyati = document.getElementById("alisFiyati").value;
+            var ad = document.getElementById("ad").value;
+            var tur = document.getElementById("tur").value;
+            var desi = document.getElementById("desi").value;
+            var notlar = document.getElementById("notlar").value;
+
+            if (alisTarihi === "" || alisFiyati === "" || ad === "" || tur === "" || desi === "" || notlar === "") {
+                document.getElementById("uyari").innerHTML = '<div class="alert alert-danger" role="alert">Lütfen tüm alanları doldurun.</div>';
+            } else {
+                // Sadece sayı içermesi kontrolü
+                if (validateNumericInput(alisFiyati)) {
+                    document.getElementById("uyari").innerHTML = ''; // Uyarıyı temizle
+                    ekle();
+                }
+            }
+        }
+
+        // Sayısal giriş kontrolü fonksiyonu
+        function validateNumericInput(input) {
+            var value = input.value.trim();
+
+            // Sadece sayı içermesi kontrolü
+            if (!(/^\d*\.?\d*$/.test(value))) {
+                input.nextElementSibling.innerText = "Lütfen sadece sayısal değerler girin!";
+                return false;
+            } else {
+                input.nextElementSibling.innerText = "";
+                return true;
+            }
+        }
+
+        // Oyuncak silme fonksiyonu
+        function sil(id) {
+            // Kullanıcıya onay mesajı gösterme
+            if (!id) {
+                alert("Lütfen geçerli bir ID belirtin.");
+                return;
+            }
+
+            if (confirm(ad +"Adlı oyuncağı silmek istediğinizden emin misiniz?")) {
+                var request = new XMLHttpRequest();
+                request.open("DELETE", "http://localhost:8080/sil?id=" + id, true);
+                request.onreadystatechange = function () {
+                    if (request.readyState === XMLHttpRequest.DONE && request.status === 200) {
+                        alert(request.responseText);
+                        listele();
+                    }
+                };
+                request.send();
+            }
+        }
+
+        // Oyuncak güncelleme fonksiyonu
+        function guncelle() {
+            // Güncelleme işlemi için gerekli parametreler
+            const parametreler = {
+                id: document.getElementById("guncelleID").value,
+                alisTarihi: document.getElementById("guncellealisTarihi").value,
+                alisFiyati: document.getElementById("guncellealisFiyati").value,
+                ad: document.getElementById("guncellead").value,
+                tur: document.getElementById("guncelletur").value,
+                desi: document.getElementById("guncelledesi").value,
+                notlar: document.getElementById("guncellenotlar").value
+            };
+
+            // Boş alan kontrolü
+            for (const key in parametreler) {
+                if (parametreler[key] === "") {
+                    alert("Lütfen Güncelleme yapmak için tüm alanları doldurun.");
+                    return; // İşlemi durdur
+                }
+            }
+
+            // Kullanıcıya onay mesajı gösterme
+            if (!confirm(guncelleID +" İd nolu oyuncak bilgilerini güncellemek istediğinizden emin misiniz?")) {
+                return; // Onay alınmadığı durumda işlemi durdur
+            }
+
+            // Güncelleme isteğini gönderme
+            var request = new XMLHttpRequest();
+            request.open("PUT", "http://localhost:8080/guncelle/" + parametreler.id, true);
+            request.setRequestHeader("Content-type", "application/json");
+
+            // Güncelleme işlemi tamamlandığında
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status === 200) {
+                        alert("Güncelleme başarılı!");
+                        listele(); // Verileri güncelle
+
+                        // Güncelleme bilgi giriş alanlarını temizleme fonksiyonunu çağır
+                        temizleGuncellemeForm();
+                    } else {
+                        alert("Güncelleme başarısız! Hata: " + request.status);
+                    }
+                }
+            };
+
+            // Güncelleme isteğini gönderme
+            request.send(JSON.stringify(parametreler));
+        }
+
+        // Güncelleme bilgi giriş alanlarını temizleme fonksiyonu
+        function temizleGuncellemeForm() {
+            document.getElementById("guncellealisTarihi").value = "";
+            document.getElementById("guncellealisFiyati").value = "";
+            document.getElementById("guncellead").value = "";
+            document.getElementById("guncelletur").value = "";
+            document.getElementById("guncelledesi").value = "";
+            document.getElementById("guncellenotlar").value = "";
+        }
+
+    </script>
+</head>
+
+<body class="bg-purple">
+
+<!-- Ana container -->
+<div class="container mt-5">
+    <!-- Başlık -->
+    <h1 class="text-center mb-4">Zeynep'in Oyuncak Mağazasına Hoş Geldiniz!!</h1>
+    <!-- Filtreleme alanları -->
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label for="filtreAd">Oyuncak Adı:</label>
+            <input type="text" class="form-control" id="filtreAd" name="filtreAd">
+        </div>
+        <div class="form-group col-md-4">
+            <label for="filtreTur">Oyuncak Türü:</label>
+            <input type="text" class="form-control" id="filtreTur" name="filtreTur">
+        </div>
+    </div>
+
+    <!-- Filtrele ve Temizle butonları -->
+    <div class="mb-3">
+        <button class="btn btn-primary" onclick="uygulaFiltre()">Filtrele</button>
+        <button class="btn btn-secondary" onclick="temizleFiltre()">Temizle</button>
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" onclick="listele()">Oyuncakları Listele</button>
+    </div>
+
+    <div id="oyuncakListesi"></div>
+
+
+<!-- Oyuncak Ekleme Formu -->
+    <div id="ekle" class="mt-3">
+        <form>
+            <!-- Form alanları -->
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label for="alisTarihi">Alış Tarihi:</label>
+                    <input type="date" class="form-control" id="alisTarihi" name="alisTarihi">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="alisFiyati">Alış Fiyatı:</label>
+                    <input type="text" class="form-control" id="alisFiyati" name="alisFiyati" oninput="validateNumericInput(this, 'alisFiyatiError')">
+                    <small id="alisFiyatiError" class="form-text text-danger"></small>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="ad">Oyuncak:</label>
+                    <input type="text" class="form-control" id="ad" name="ad">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="tur">Tür:</label>
+                    <input type="text" class="form-control" id="tur" name="tur">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="desi">Desi:</label>
+                    <input type="number" class="form-control" id="desi" name="desi">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="notlar">Notlar:</label>
+                    <input type="text" class="form-control" id="notlar" name="notlar">
+                </div>
+            </div>
+            <button type="button" class="btn btn-success" onclick="kontrolVeEkle()">Oyuncak Ekle</button>
+            <!-- Hata mesajı gösterilecek div -->
+            <div id="uyari" class="mt-2"></div>
+        </form>
+    </div>
+
+    <!-- Oyuncak Silme Formu -->
+      <div id="sil" class="mb-3 mt-3">
+        <div class="form-row">
+         <div class="form-group col-md-2">
+             <label for="ID">Oyuncak ID:</label>
+             <input type="text" class="form-control" id="ID" name="ID">
+         </div>
+        </div>
+      <button type="button"class="btn btn-success btn-danger" onclick="sil()">OyuncakSil</button>
+    </div>
+
+    <!-- Oyuncak Güncelleme Formu -->
+    <div id="guncelle" class="mb-3 mt-3">
+        <form>
+            <!-- Oyuncak bilgilerinin güncelleneceği alanlar -->
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label for="guncelleID">Oyuncak ID:</label>
+                    <input type="text" class="form-control" id="guncelleID" name="guncelleID">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label for="guncellealisTarihi">Alış Tarihi:</label>
+                    <input type="date" class="form-control" id="guncellealisTarihi" name="guncellealisTarihi">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="guncellealisFiyati">Alış Fiyatı:</label>
+                    <input type="text" class="form-control" id="guncellealisFiyati" name="guncellealisFiyati" oninput="validateNumericInput(this,'guncelleAlisFiyatiError')">
+                    <small id="guncelleAlisFiyatiError" class="form-text text-danger"></small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="guncellead">Oyuncak:</label>
+                    <input type="text" class="form-control" id="guncellead" name="guncellead">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="guncelletur">Tür:</label>
+                    <input type="text" class="form-control" id="guncelletur" name="guncelletur">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="guncelledesi">Desi:</label>
+                    <input type="number" class="form-control" id="guncelledesi" name="guncelledesi">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="guncellenotlar">Notlar:</label>
+                    <input type="text" class="form-control" id="guncellenotlar" name="guncellenotlar">
+                </div>
+            </div>
+            <button type="button" class="btn btn-warning custom-btn" onclick="guncelle()">Oyuncak Güncelle</button>
+            <!-- Hata mesajı gösterilecek div -->
+            <div id="guncelleUyari" class="mt-2"></div>
+        </form>
+    </div>
+
+    </div>
+</div>
+
+<!-- Gerekli JS kütüphaneleri -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>
